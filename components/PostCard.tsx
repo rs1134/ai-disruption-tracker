@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { Heart, Repeat2, MessageCircle, Eye, ExternalLink, Twitter } from 'lucide-react';
+import { Heart, Repeat2, MessageCircle, Eye, ExternalLink, MessageSquare } from 'lucide-react';
 import type { FeedItem } from '@/types';
 import CategoryBadge from './CategoryBadge';
 import SentimentBadge from './SentimentBadge';
@@ -32,7 +32,7 @@ export default function PostCard({ item }: Props) {
             />
           ) : (
             <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-              <Twitter className="w-4 h-4 text-blue-400" />
+              <MessageSquare className="w-4 h-4 text-blue-400" />
             </div>
           )}
           <div className="min-w-0">

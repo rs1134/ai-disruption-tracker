@@ -1,6 +1,6 @@
 'use client';
 
-import { Twitter, Newspaper, LayoutGrid } from 'lucide-react';
+import { MessageSquare, Newspaper, LayoutGrid } from 'lucide-react';
 import type { FilterType } from '@/types';
 
 interface Props {
@@ -10,9 +10,9 @@ interface Props {
 }
 
 const TABS: { id: FilterType; label: string; icon: React.ReactNode }[] = [
-  { id: 'all',   label: 'All',      icon: <LayoutGrid className="w-3.5 h-3.5" /> },
-  { id: 'tweet', label: 'X Posts',  icon: <Twitter className="w-3.5 h-3.5" /> },
-  { id: 'news',  label: 'News',     icon: <Newspaper className="w-3.5 h-3.5" /> },
+  { id: 'all',   label: 'All',           icon: <LayoutGrid className="w-3.5 h-3.5" /> },
+  { id: 'tweet', label: 'Reddit & HN',   icon: <MessageSquare className="w-3.5 h-3.5" /> },
+  { id: 'news',  label: 'News',          icon: <Newspaper className="w-3.5 h-3.5" /> },
 ];
 
 export default function FilterToggle({ value, onChange, counts }: Props) {

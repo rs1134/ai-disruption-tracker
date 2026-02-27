@@ -1,145 +1,237 @@
-import type { FeedItem, NewsArticle } from '@/types';
+// ── News Feed: Free RSS Feeds + Google News RSS ───────────────
+// 100% free, no API key required.
+// Parses standard RSS 2.0 and Atom feeds without any npm packages.
+
+import type { FeedItem } from '@/types';
 import { detectCategory, extractTags, isAiRelevant, deduplicateItems } from './nlp';
 import { analyzeSentiment } from './sentiment';
 
-const NEWS_API_KEY = process.env.NEWS_API_KEY;
-const NEWS_API_BASE = 'https://newsapi.org/v2';
+// ── RSS feed sources ──────────────────────────────────────────
 
-// Prioritised sources – NewsAPI source IDs
-const PRIORITY_SOURCES = [
-  'reuters', 'bloomberg', 'financial-times', 'techcrunch', 'the-verge',
-  'cnbc', 'the-wall-street-journal', 'business-insider', 'wired',
-  'ars-technica', 'mit-technology-review',
+const RSS_FEEDS: { url: string; source: string; priority: number }[] = [
+  // Tech / AI focused
+  { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', source: 'TechCrunch', priority: 90 },
+  { url: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml', source: 'The Verge', priority: 85 },
+  { url: 'https://www.wired.com/feed/tag/ai/latest/rss', source: 'Wired', priority: 85 },
+  { url: 'https://feeds.arstechnica.com/arstechnica/technology-lab', source: 'Ars Technica', priority: 80 },
+  { url: 'https://www.technologyreview.com/feed/', source: 'MIT Tech Review', priority: 90 },
+  { url: 'https://venturebeat.com/category/ai/feed/', source: 'VentureBeat', priority: 80 },
+  // Google News keyword searches (free, no key)
+  { url: 'https://news.google.com/rss/search?q=artificial+intelligence+layoffs&hl=en-US&gl=US&ceid=US:en', source: 'Google News', priority: 70 },
+  { url: 'https://news.google.com/rss/search?q=AI+startup+funding&hl=en-US&gl=US&ceid=US:en', source: 'Google News', priority: 70 },
+  { url: 'https://news.google.com/rss/search?q=OpenAI+OR+Anthropic+OR+%22Google+AI%22&hl=en-US&gl=US&ceid=US:en', source: 'Google News', priority: 75 },
+  { url: 'https://news.google.com/rss/search?q=AI+regulation+OR+%22AI+act%22&hl=en-US&gl=US&ceid=US:en', source: 'Google News', priority: 70 },
+  { url: 'https://news.google.com/rss/search?q=LLM+OR+AGI+OR+%22large+language+model%22&hl=en-US&gl=US&ceid=US:en', source: 'Google News', priority: 70 },
 ];
 
-// Source display name normalisation
-const SOURCE_NAMES: Record<string, string> = {
-  reuters: 'Reuters',
-  bloomberg: 'Bloomberg',
-  'financial-times': 'Financial Times',
-  techcrunch: 'TechCrunch',
-  'the-verge': 'The Verge',
-  cnbc: 'CNBC',
-  'the-wall-street-journal': 'WSJ',
-  'business-insider': 'Business Insider',
-  wired: 'Wired',
-  'ars-technica': 'Ars Technica',
-  'mit-technology-review': 'MIT Tech Review',
-};
+// ── Minimal RSS / Atom parser (no external deps) ──────────────
 
-const SEARCH_QUERIES = [
-  'AI layoffs artificial intelligence',
-  'AI funding startup investment',
-  'OpenAI Anthropic Google AI announcement',
-  'artificial intelligence regulation',
-  'AI product launch LLM',
-  'AI disruption technology',
-];
-
-let usedIds: Set<string>;
-function resetIds() {
-  usedIds = new Set();
+function extractCdata(raw: string): string {
+  const m = raw.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
+  return m ? m[1].trim() : raw.replace(/<[^>]+>/g, '').trim();
 }
 
-async function fetchNewsQuery(q: string, apiKey: string): Promise<NewsArticle[]> {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+function getTag(xml: string, tag: string): string {
+  // CDATA variant
+  const cdataRe = new RegExp(
+    `<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`,
+    'i'
+  );
+  const cdataMatch = xml.match(cdataRe);
+  if (cdataMatch) return cdataMatch[1].trim();
 
-  const params = new URLSearchParams({
-    q,
-    language: 'en',
-    sortBy: 'relevancy',
-    from: since,
-    pageSize: '30',
-    apiKey,
-  });
+  // Normal variant
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
+  const m = xml.match(re);
+  return m ? m[1].replace(/<[^>]+>/g, '').trim() : '';
+}
 
-  const res = await fetch(`${NEWS_API_BASE}/everything?${params}`, {
-    next: { revalidate: 0 },
-  });
+function getAttr(xml: string, tag: string, attr: string): string {
+  const re = new RegExp(`<${tag}[^>]*${attr}="([^"]*)"`, 'i');
+  const m = xml.match(re);
+  return m ? m[1].trim() : '';
+}
 
-  if (res.status === 426) {
-    // NewsAPI free tier limitation: requires HTTPS (always true in prod)
-    console.warn('[News] NewsAPI plan limitation');
-    return [];
+interface ParsedItem {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  author: string;
+  imageUrl?: string;
+}
+
+function parseItem(itemXml: string): ParsedItem | null {
+  const title = getTag(itemXml, 'title');
+
+  // <link> can be plain text (RSS) or self-closing with href attr (Atom)
+  const linkAttr = getAttr(itemXml, 'link', 'href');
+  const linkTag = getTag(itemXml, 'link');
+  const link = linkAttr || linkTag;
+
+  if (!title || !link) return null;
+
+  const description =
+    getTag(itemXml, 'description') ||
+    getTag(itemXml, 'summary') ||
+    getTag(itemXml, 'content');
+
+  const pubDate =
+    getTag(itemXml, 'pubDate') ||
+    getTag(itemXml, 'published') ||
+    getTag(itemXml, 'updated') ||
+    new Date().toISOString();
+
+  const author =
+    getTag(itemXml, 'author') ||
+    getTag(itemXml, 'dc:creator') ||
+    getTag(itemXml, 'name');
+
+  // Media / enclosure image
+  const imageUrl =
+    getAttr(itemXml, 'media:content', 'url') ||
+    getAttr(itemXml, 'media:thumbnail', 'url') ||
+    getAttr(itemXml, 'enclosure', 'url') ||
+    undefined;
+
+  // Decode common HTML entities
+  const decode = (s: string) =>
+    s
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'");
+
+  return {
+    title: decode(title),
+    link: decode(link),
+    description: decode(description).slice(0, 600),
+    pubDate,
+    author: decode(author),
+    imageUrl,
+  };
+}
+
+function parseFeed(xml: string): ParsedItem[] {
+  const items: ParsedItem[] = [];
+
+  // RSS 2.0 <item>
+  const itemRe = /<item[\s>][\s\S]*?<\/item>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = itemRe.exec(xml)) !== null) {
+    const parsed = parseItem(m[0]);
+    if (parsed) items.push(parsed);
   }
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`NewsAPI error ${res.status}: ${body.slice(0, 200)}`);
+  // Atom <entry>
+  if (items.length === 0) {
+    const entryRe = /<entry[\s>][\s\S]*?<\/entry>/gi;
+    while ((m = entryRe.exec(xml)) !== null) {
+      const parsed = parseItem(m[0]);
+      if (parsed) items.push(parsed);
+    }
   }
 
-  const json = await res.json();
-  return json.articles ?? [];
+  return items;
 }
 
-function scoreArticle(article: NewsArticle): number {
-  let score = 50; // base
-  const sourceId = article.source.id ?? '';
-  if (PRIORITY_SOURCES.includes(sourceId)) score += 50;
-  const textForCategory = `${article.title} ${article.description ?? ''}`;
-  const category = detectCategory(textForCategory);
-  if (category !== 'General') score += 20;
-  return score;
+// ── Fetch single feed ─────────────────────────────────────────
+
+async function fetchFeed(
+  feedUrl: string,
+  sourceName: string,
+  priority: number
+): Promise<FeedItem[]> {
+  const since24h = Date.now() - 86_400_000;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8_000);
+
+  let xml: string;
+  try {
+    const res = await fetch(feedUrl, {
+      headers: {
+        'User-Agent': 'AI-Disruption-Tracker/1.0',
+        Accept: 'application/rss+xml, application/atom+xml, text/xml, */*',
+      },
+      signal: controller.signal,
+      next: { revalidate: 0 },
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    xml = await res.text();
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+
+  const rawItems = parseFeed(xml);
+  const items: FeedItem[] = [];
+
+  for (const raw of rawItems) {
+    // Date filter
+    const pub = new Date(raw.pubDate).getTime();
+    if (isNaN(pub) || pub < since24h) continue;
+
+    const text = `${raw.title} ${raw.description}`;
+    if (!isAiRelevant(text)) continue;
+
+    const category = detectCategory(text);
+    const sentiment = analyzeSentiment(text);
+
+    // Score: priority + category bonus
+    const categoryBonus = category !== 'General' ? 20 : 0;
+    const engagementScore = priority + categoryBonus;
+
+    // Stable ID from URL
+    const urlHash = Buffer.from(raw.link).toString('base64url').slice(0, 20);
+
+    items.push({
+      id: `rss_${urlHash}`,
+      type: 'news',
+      title: raw.title,
+      content: raw.description,
+      author: raw.author || sourceName,
+      source: sourceName,
+      url: raw.link,
+      imageUrl: raw.imageUrl,
+      engagementScore,
+      likes: 0,
+      reposts: 0,
+      replies: 0,
+      views: 0,
+      category,
+      sentiment,
+      tags: extractTags(text),
+      publishedAt: new Date(raw.pubDate).toISOString(),
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  return items;
 }
+
+// ── Main export ───────────────────────────────────────────────
 
 export async function fetchNewsArticles(): Promise<FeedItem[]> {
-  if (!NEWS_API_KEY) {
-    console.warn('[News] NEWS_API_KEY not set – skipping');
-    return [];
-  }
+  const allItems: FeedItem[] = [];
 
-  resetIds();
-  const rawArticles: (NewsArticle & { _score: number })[] = [];
-
-  for (const q of SEARCH_QUERIES) {
+  for (const feed of RSS_FEEDS) {
     try {
-      const articles = await fetchNewsQuery(q, NEWS_API_KEY);
-      for (const a of articles) {
-        if (!isAiRelevant(`${a.title} ${a.description ?? ''}`)) continue;
-        rawArticles.push({ ...a, _score: scoreArticle(a) });
-      }
+      const items = await fetchFeed(feed.url, feed.source, feed.priority);
+      allItems.push(...items);
+      console.log(`[RSS] ${feed.source}: ${items.length} relevant articles`);
     } catch (err) {
-      console.error(`[News] Query "${q.slice(0, 30)}" failed:`, (err as Error).message);
+      console.error(`[RSS] ${feed.source} failed:`, (err as Error).message);
     }
-
+    // Small pause between requests
     await new Promise((r) => setTimeout(r, 150));
   }
 
-  // Deduplicate before mapping to FeedItem
-  const deduped = deduplicateItems(
-    rawArticles.map((a) => ({ ...a, url: a.url, title: a.title }))
-  ) as (NewsArticle & { _score: number })[];
-
-  const items: FeedItem[] = deduped
-    .sort((a, b) => b._score - a._score)
-    .slice(0, 80)
-    .map((article, i) => {
-      const text = `${article.title} ${article.description ?? ''} ${article.content ?? ''}`;
-      const sourceId = article.source.id ?? '';
-      const sourceName =
-        SOURCE_NAMES[sourceId] ?? article.source.name ?? 'News';
-
-      return {
-        id: `news_${Buffer.from(article.url).toString('base64url').slice(0, 16)}_${i}`,
-        type: 'news' as const,
-        title: article.title,
-        content: article.description ?? article.content?.slice(0, 300) ?? '',
-        author: article.author ?? sourceName,
-        source: sourceName,
-        url: article.url,
-        imageUrl: article.urlToImage ?? undefined,
-        engagementScore: article._score,
-        likes: 0,
-        reposts: 0,
-        replies: 0,
-        views: 0,
-        category: detectCategory(text),
-        sentiment: analyzeSentiment(text),
-        tags: extractTags(text),
-        publishedAt: article.publishedAt,
-        createdAt: new Date().toISOString(),
-      };
-    });
-
-  return items;
+  const unique = deduplicateItems(allItems);
+  return unique
+    .sort((a, b) => b.engagementScore - a.engagementScore)
+    .slice(0, 80);
 }

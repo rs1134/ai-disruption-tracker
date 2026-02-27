@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     console.error('[Cron] Cleanup error:', err);
   }
 
-  // Fetch Twitter posts
+  // Fetch social posts (Reddit + Hacker News)
   try {
     const tweets = await fetchTwitterPosts();
     for (const tweet of tweets) {
@@ -74,11 +74,11 @@ export async function GET(request: NextRequest) {
         console.error('[Cron] Tweet insert error:', err);
       }
     }
-    await logFetch('twitter', 'success', results.tweets, undefined, Date.now() - startTime);
+    await logFetch('social', 'success', results.tweets, undefined, Date.now() - startTime);
   } catch (err) {
     const msg = (err as Error).message;
-    results.errors.push(`Twitter: ${msg}`);
-    await logFetch('twitter', 'error', 0, msg, Date.now() - startTime);
+    results.errors.push(`Social: ${msg}`);
+    await logFetch('social', 'error', 0, msg, Date.now() - startTime);
   }
 
   // Fetch News articles
