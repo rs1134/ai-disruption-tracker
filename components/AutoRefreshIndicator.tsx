@@ -12,7 +12,7 @@ interface Props {
 export default function AutoRefreshIndicator({
   lastRefreshed,
   onRefresh,
-  intervalMs = 30 * 60 * 1000, // 30 min
+  intervalMs = 30 * 60 * 1000,
 }: Props) {
   const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(intervalMs / 1000);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -42,47 +42,18 @@ export default function AutoRefreshIndicator({
 
   const minutes = Math.floor(secondsUntilRefresh / 60);
   const seconds = secondsUntilRefresh % 60;
-  const progressPct = ((intervalMs / 1000 - secondsUntilRefresh) / (intervalMs / 1000)) * 100;
 
   return (
-    <div className="flex items-center gap-3">
-      {lastRefreshed && (
-        <span className="text-[11px] text-slate-500 hidden sm:block">
-          Updated {new Date(lastRefreshed).toLocaleTimeString()}
-        </span>
-      )}
-
-      <div className="flex items-center gap-2 bg-surface-card border border-surface-border rounded-lg px-3 py-1.5">
-        {/* Progress ring */}
-        <div className="relative w-4 h-4">
-          <svg className="w-4 h-4 -rotate-90" viewBox="0 0 16 16">
-            <circle cx="8" cy="8" r="6" fill="none" stroke="#1e2436" strokeWidth="2" />
-            <circle
-              cx="8" cy="8" r="6"
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 6}`}
-              strokeDashoffset={`${2 * Math.PI * 6 * (1 - progressPct / 100)}`}
-              className="transition-all duration-1000"
-            />
-          </svg>
-        </div>
-
-        <span className="text-[11px] text-slate-400 font-mono tabular-nums">
-          {minutes > 0 ? `${minutes}m ` : ''}{String(seconds).padStart(2, '0')}s
-        </span>
-
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="text-slate-500 hover:text-blue-400 transition-colors disabled:opacity-40"
-          title="Refresh now"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
-    </div>
+    <button
+      onClick={handleRefresh}
+      disabled={isRefreshing}
+      className="flex items-center gap-1.5 text-white/50 hover:text-white/90 transition-colors disabled:opacity-40"
+      title={lastRefreshed ? `Last updated ${new Date(lastRefreshed).toLocaleTimeString()}` : 'Click to refresh'}
+    >
+      <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+      <span className="text-[10px] font-mono tabular-nums hidden sm:block">
+        {minutes > 0 ? `${minutes}m ` : ''}{String(seconds).padStart(2, '0')}s
+      </span>
+    </button>
   );
 }

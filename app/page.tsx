@@ -35,81 +35,63 @@ export default function HomePage() {
   useEffect(() => { loadSidebar(); }, []);
 
   const handleRefresh = useCallback(async () => {
-    // Re-fetch sidebar after main feed refreshes
     await loadSidebar();
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-paper font-sans">
       <Header
         lastRefreshed={sidebarStats?.lastRefreshed ?? null}
         onRefresh={handleRefresh}
       />
 
-      {/* Hero */}
-      <div className="relative border-b border-surface-border bg-hero-glow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-              Live · Updates every 30 min
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-3">
-              AI Disruption{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Tracker
-              </span>
-            </h1>
-            <p className="text-slate-400 text-base leading-relaxed">
-              Top AI disruptions in the last 24 hours — highest-engagement{' '}
-              <span className="text-slate-300">X posts</span> and{' '}
-              <span className="text-slate-300">breaking news</span> on layoffs, funding,
-              product launches, regulations, and breakthroughs.
-            </p>
-
-            {/* Quick stats */}
-            {feedCounts.all > 0 && (
-              <div className="flex items-center gap-4 mt-5 text-sm">
-                <span className="text-slate-400">
-                  <span className="text-white font-semibold">{feedCounts.all}</span> items
-                </span>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400">
-                  <span className="text-blue-400 font-semibold">{feedCounts.tweet}</span> X posts
-                </span>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400">
-                  <span className="text-purple-400 font-semibold">{feedCounts.news}</span> articles
-                </span>
-              </div>
-            )}
+      {/* Subheading bar — count stats */}
+      {feedCounts.all > 0 && (
+        <div className="border-b border-rule bg-paper-warm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4 text-[11px] text-ink-light font-sans">
+            <span>
+              <span className="font-semibold text-ink">{feedCounts.all}</span> items today
+            </span>
+            <span className="text-rule">|</span>
+            <span>
+              <span className="font-semibold text-ink">{feedCounts.tweet}</span> Reddit &amp; HN
+            </span>
+            <span className="text-rule">|</span>
+            <span>
+              <span className="font-semibold text-ink">{feedCounts.news}</span> news articles
+            </span>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* Feed column */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex gap-10">
+          {/* Primary feed column */}
           <div className="flex-1 min-w-0">
             <DisruptionHighlight item={topDisruption} />
             <Feed onCountsChange={setFeedCounts} />
           </div>
 
-          {/* Sidebar */}
-          <div className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-20">
-              <Sidebar stats={sidebarStats} loading={sidebarLoading} />
+          {/* Sidebar — right rail */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-[108px]">
+              {/* Divider line on left */}
+              <div className="pl-6 border-l border-rule">
+                <Sidebar stats={sidebarStats} loading={sidebarLoading} />
+              </div>
             </div>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-surface-border mt-16 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between gap-3 text-xs text-slate-600">
-          <p>AI Disruption Tracker · Data refreshed every 30 minutes · Past 24 hours only</p>
-          <p>Powered by X API v2 · NewsAPI · Next.js · Neon PostgreSQL</p>
+      <footer className="border-t-2 border-ink mt-16 pt-4 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 text-[11px] text-ink-light font-sans">
+            <p className="font-semibold text-ink">The AI Disruption Tracker</p>
+            <p>Data refreshed daily · Past 24 hours only · Powered by Reddit, HN &amp; RSS · Next.js &amp; Neon</p>
+          </div>
         </div>
       </footer>
     </div>

@@ -2,14 +2,15 @@
 
 import type { Category } from '@/types';
 
-const CONFIG: Record<Category, { label: string; classes: string }> = {
-  Layoffs:         { label: 'Layoffs',        classes: 'bg-red-500/15 text-red-400 border-red-500/25' },
-  Funding:         { label: 'Funding',         classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
-  'Product Launch':{ label: 'Product Launch',  classes: 'bg-blue-500/15 text-blue-400 border-blue-500/25' },
-  Regulation:      { label: 'Regulation',      classes: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
-  Breakthrough:    { label: 'Breakthrough',    classes: 'bg-purple-500/15 text-purple-400 border-purple-500/25' },
-  Acquisition:     { label: 'Acquisition',     classes: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
-  General:         { label: 'AI',              classes: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
+// WSJ-style: bordered label tags, no background fill
+const CONFIG: Record<Category, { label: string; borderColor: string; textColor: string }> = {
+  Layoffs:          { label: 'LAYOFFS',        borderColor: 'border-red-600',    textColor: 'text-red-700' },
+  Funding:          { label: 'FUNDING',         borderColor: 'border-emerald-700', textColor: 'text-emerald-700' },
+  'Product Launch': { label: 'PRODUCT',         borderColor: 'border-blue-700',   textColor: 'text-blue-700' },
+  Regulation:       { label: 'REGULATION',      borderColor: 'border-amber-700',  textColor: 'text-amber-700' },
+  Breakthrough:     { label: 'BREAKTHROUGH',    borderColor: 'border-purple-700', textColor: 'text-purple-700' },
+  Acquisition:      { label: 'ACQUISITION',     borderColor: 'border-cyan-700',   textColor: 'text-cyan-700' },
+  General:          { label: 'AI',              borderColor: 'border-ink-muted',  textColor: 'text-ink-muted' },
 };
 
 interface Props {
@@ -20,11 +21,17 @@ interface Props {
 export default function CategoryBadge({ category, size = 'sm' }: Props) {
   const cfg = CONFIG[category] ?? CONFIG.General;
   const sizeClasses = size === 'sm'
-    ? 'text-[10px] px-1.5 py-0.5'
-    : 'text-xs px-2 py-1';
+    ? 'text-[9px] px-1 py-px'
+    : 'text-[10px] px-1.5 py-0.5';
 
   return (
-    <span className={`inline-flex items-center rounded border font-medium uppercase tracking-wide ${sizeClasses} ${cfg.classes}`}>
+    <span
+      className={`
+        inline-flex items-center border font-sans font-bold tracking-[0.1em] uppercase
+        bg-transparent
+        ${sizeClasses} ${cfg.borderColor} ${cfg.textColor}
+      `}
+    >
       {cfg.label}
     </span>
   );

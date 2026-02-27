@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PostCard from './PostCard';
 import NewsCard from './NewsCard';
 import FilterToggle from './FilterToggle';
@@ -28,7 +28,6 @@ export default function Feed({ onCountsChange }: Props) {
       .then((res) => {
         const items: FeedItem[] = res.data ?? [];
         setAllItems(items);
-
         const counts = {
           all: items.length,
           tweet: items.filter((i) => i.type === 'tweet').length,
@@ -75,12 +74,17 @@ export default function Feed({ onCountsChange }: Props) {
   if (loading) {
     return (
       <div>
-        <div className="mb-4">
-          <div className="h-10 w-56 bg-surface-card border border-surface-border rounded-lg animate-pulse" />
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-40 bg-surface-card border border-surface-border rounded-xl animate-pulse" />
+        {/* Skeleton filter tabs */}
+        <div className="h-9 w-64 bg-rule animate-pulse mb-4" />
+        {/* Skeleton cards */}
+        <div className="divide-y divide-rule">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="py-4 space-y-2">
+              <div className="h-3 w-16 bg-rule animate-pulse" />
+              <div className="h-4 w-full bg-rule animate-pulse" />
+              <div className="h-4 w-4/5 bg-rule animate-pulse" />
+              <div className="h-3 w-32 bg-rule animate-pulse" />
+            </div>
           ))}
         </div>
       </div>
@@ -89,17 +93,15 @@ export default function Feed({ onCountsChange }: Props) {
 
   return (
     <div>
-      <div className="mb-5">
-        <FilterToggle value={filter} onChange={setFilter} counts={counts} />
-      </div>
+      <FilterToggle value={filter} onChange={setFilter} counts={counts} />
 
       {visible.length === 0 ? (
-        <div className="text-center py-20 text-slate-500">
-          <p className="text-lg mb-1">No items yet</p>
-          <p className="text-sm">The first data refresh will populate this feed.</p>
+        <div className="text-center py-20">
+          <p className="text-[15px] text-ink-secondary font-serif mb-1">No items yet</p>
+          <p className="text-[12px] text-ink-light font-sans">The first data refresh will populate this feed.</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="divide-y divide-rule">
           {visible.map((item) =>
             item.type === 'tweet' ? (
               <PostCard key={item.id} item={item} />
@@ -114,11 +116,11 @@ export default function Feed({ onCountsChange }: Props) {
       {hasMore && (
         <div ref={sentinelRef} className="flex justify-center py-8">
           {loadingMore && (
-            <div className="flex gap-1.5">
+            <div className="flex gap-1">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"
+                  className="w-1.5 h-1.5 bg-ink-faint animate-bounce"
                   style={{ animationDelay: `${i * 150}ms` }}
                 />
               ))}

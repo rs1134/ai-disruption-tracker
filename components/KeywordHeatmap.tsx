@@ -25,35 +25,40 @@ export default function KeywordHeatmap() {
     return (
       <div className="space-y-1.5">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-5 bg-slate-800/60 rounded animate-pulse" style={{ width: `${60 + i * 5}%` }} />
+          <div
+            key={i}
+            className="h-4 bg-rule animate-pulse"
+            style={{ width: `${50 + i * 8}%` }}
+          />
         ))}
       </div>
     );
   }
 
   if (keywords.length === 0) {
-    return <p className="text-xs text-slate-500">No keyword data yet.</p>;
+    return <p className="text-[11px] text-ink-light font-sans">No keyword data yet.</p>;
   }
 
   const max = Math.max(...keywords.map((k) => k.count), 1);
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-x-2 gap-y-1">
       {keywords.slice(0, 24).map((kw) => {
         const intensity = kw.count / max;
-        const opacity = 0.2 + intensity * 0.75;
-        const fontSize = 10 + intensity * 6;
+        const fontSize = 10 + intensity * 5;
+        // Use ink color with varying opacity — editorial look
+        const opacity = 0.35 + intensity * 0.65;
 
         return (
           <span
             key={kw.keyword}
             title={`${kw.keyword}: ${kw.count} mentions`}
-            className="cursor-default transition-transform hover:scale-110"
+            className="cursor-default font-sans transition-colors hover:text-wsj-red"
             style={{
               fontSize: `${fontSize}px`,
-              color: `rgba(59, 130, 246, ${opacity})`,
-              fontWeight: intensity > 0.6 ? 700 : 500,
-              lineHeight: 1.4,
+              color: `rgba(17, 17, 17, ${opacity})`,
+              fontWeight: intensity > 0.5 ? 600 : 400,
+              lineHeight: 1.6,
             }}
           >
             {kw.keyword}

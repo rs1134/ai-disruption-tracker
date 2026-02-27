@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { Newspaper, ExternalLink, Clock } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import type { FeedItem } from '@/types';
 import CategoryBadge from './CategoryBadge';
 import SentimentBadge from './SentimentBadge';
@@ -14,81 +14,71 @@ export default function NewsCard({ item }: Props) {
   const timeAgo = formatDistanceToNow(new Date(item.publishedAt), { addSuffix: true });
 
   return (
-    <article className="group relative bg-surface-card border border-surface-border rounded-xl overflow-hidden hover:border-purple-500/40 hover:bg-surface-hover transition-all duration-200 animate-fade-in">
-      {/* Cover image */}
-      {item.imageUrl && (
-        <div className="relative h-36 overflow-hidden">
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-surface-card to-transparent" />
-        </div>
-      )}
-
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-purple-500/20 flex items-center justify-center">
-              <Newspaper className="w-3.5 h-3.5 text-purple-400" />
-            </div>
-            <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">
+    <article className="group border-b border-rule last:border-b-0 py-4 first:pt-0">
+      <div className="flex gap-3">
+        {/* Text content */}
+        <div className="flex-1 min-w-0">
+          {/* Meta row */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <CategoryBadge category={item.category} size="sm" />
+            <SentimentBadge sentiment={item.sentiment} />
+            <span className="text-[10px] text-ink-light font-sans uppercase tracking-wide ml-auto flex-shrink-0">
               {item.source}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <CategoryBadge category={item.category} />
-            <SentimentBadge sentiment={item.sentiment} />
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-slate-600 hover:text-purple-400 transition-colors"
-              aria-label="Read article"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+          {/* Headline */}
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block group"
+          >
+            <h3 className="font-serif font-bold text-[15px] leading-snug text-ink mb-1 group-hover:text-wsj-red transition-colors line-clamp-2">
+              {item.title}
+            </h3>
+          </a>
+
+          {/* Excerpt */}
+          {item.content && (
+            <p className="text-[12px] text-ink-secondary font-sans leading-relaxed line-clamp-2 mb-2">
+              {item.content}
+            </p>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-ink-light font-sans italic">
+              {item.author && item.author !== item.source ? item.author : ''}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-ink-faint font-sans">{timeAgo}</span>
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink-faint hover:text-wsj-red transition-colors"
+                aria-label="Read article"
+              >
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Title */}
-        <h3 className="text-sm font-semibold text-white leading-snug mb-1.5 line-clamp-2 group-hover:text-purple-200 transition-colors">
-          {item.title}
-        </h3>
-
-        {/* Description */}
-        {item.content && (
-          <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3">
-            {item.content}
-          </p>
-        )}
-
-        {/* Tags */}
-        {item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {item.tags.slice(0, 4).map((tag) => (
-              <span key={tag} className="text-[10px] text-slate-500 bg-slate-800/50 px-1.5 py-0.5 rounded">
-                {tag}
-              </span>
-            ))}
+        {/* Thumbnail image — right side like WSJ */}
+        {item.imageUrl && (
+          <div className="flex-shrink-0 w-20 h-16 overflow-hidden">
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+              }}
+            />
           </div>
         )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between text-[11px] text-slate-500">
-          <span className="truncate max-w-[140px]">
-            {item.author !== item.source ? item.author : ''}
-          </span>
-          <span className="flex items-center gap-1 flex-shrink-0">
-            <Clock className="w-3 h-3" /> {timeAgo}
-          </span>
-        </div>
       </div>
     </article>
   );

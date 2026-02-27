@@ -1,6 +1,6 @@
 'use client';
 
-import { Zap, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { FeedItem } from '@/types';
 import CategoryBadge from './CategoryBadge';
@@ -14,57 +14,75 @@ export default function DisruptionHighlight({ item }: Props) {
   if (!item) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-surface-card to-surface-card p-5 mb-6">
-      {/* Glow accent */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500" />
-
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center">
-          <Zap className="w-5 h-5 text-amber-400" />
+    <div className="mb-6 border border-rule bg-paper-warm">
+      {/* WSJ-style red top rule + label */}
+      <div className="h-[3px] bg-wsj-red" />
+      <div className="px-4 pt-3 pb-4">
+        {/* Section label */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[10px] font-sans font-bold tracking-[0.15em] uppercase text-wsj-red">
+            Biggest Disruption Today
+          </span>
+          <CategoryBadge category={item.category} size="sm" />
+          <SentimentBadge sentiment={item.sentiment} />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
-              Biggest Disruption Today
-            </span>
-            <CategoryBadge category={item.category} size="sm" />
-            <SentimentBadge sentiment={item.sentiment} />
-          </div>
+        {/* Layout: text + optional image */}
+        <div className="flex gap-4">
+          <div className="flex-1 min-w-0">
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block group"
+            >
+              <h2 className="font-serif font-bold text-xl sm:text-2xl leading-tight text-ink mb-2 group-hover:text-wsj-red transition-colors line-clamp-3">
+                {item.title}
+              </h2>
+            </a>
 
-          <h2 className="text-base font-semibold text-white leading-snug mb-1 line-clamp-2">
-            {item.title}
-          </h2>
-
-          {item.content && item.content !== item.title && (
-            <p className="text-sm text-slate-400 line-clamp-2 mb-2">
-              {item.content}
-            </p>
-          )}
-
-          <div className="flex items-center gap-3 text-[11px] text-slate-500">
-            <span className="font-medium text-slate-400">{item.source}</span>
-            <span>•</span>
-            <span>{formatDistanceToNow(new Date(item.publishedAt), { addSuffix: true })}</span>
-            {item.engagementScore > 0 && (
-              <>
-                <span>•</span>
-                <span className="text-amber-500">
-                  {item.engagementScore.toLocaleString()} engagement
-                </span>
-              </>
+            {item.content && item.content !== item.title && (
+              <p className="text-[13px] text-ink-secondary font-sans leading-relaxed line-clamp-2 mb-3">
+                {item.content}
+              </p>
             )}
-          </div>
-        </div>
 
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center text-amber-400 hover:text-amber-300 transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-        </a>
+            <div className="flex items-center gap-3 text-[11px] text-ink-light font-sans">
+              <span className="font-semibold text-ink-secondary">{item.source}</span>
+              <span className="text-rule">|</span>
+              <span>{formatDistanceToNow(new Date(item.publishedAt), { addSuffix: true })}</span>
+              {item.engagementScore > 0 && (
+                <>
+                  <span className="text-rule">|</span>
+                  <span className="text-wsj-red font-semibold">
+                    {item.engagementScore.toLocaleString()} pts
+                  </span>
+                </>
+              )}
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto text-ink-faint hover:text-wsj-red transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {item.imageUrl && (
+            <div className="flex-shrink-0 w-28 sm:w-36 h-24 sm:h-28 overflow-hidden hidden sm:block">
+              <img
+                src={item.imageUrl}
+                alt={item.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

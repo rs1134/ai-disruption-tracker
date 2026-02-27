@@ -1,6 +1,5 @@
 'use client';
 
-import { MessageSquare, Newspaper, LayoutGrid } from 'lucide-react';
 import type { FilterType } from '@/types';
 
 interface Props {
@@ -9,15 +8,15 @@ interface Props {
   counts: { all: number; tweet: number; news: number };
 }
 
-const TABS: { id: FilterType; label: string; icon: React.ReactNode }[] = [
-  { id: 'all',   label: 'All',           icon: <LayoutGrid className="w-3.5 h-3.5" /> },
-  { id: 'tweet', label: 'Reddit & HN',   icon: <MessageSquare className="w-3.5 h-3.5" /> },
-  { id: 'news',  label: 'News',          icon: <Newspaper className="w-3.5 h-3.5" /> },
+const TABS: { id: FilterType; label: string }[] = [
+  { id: 'all',   label: 'All' },
+  { id: 'tweet', label: 'Reddit & HN' },
+  { id: 'news',  label: 'News' },
 ];
 
 export default function FilterToggle({ value, onChange, counts }: Props) {
   return (
-    <div className="flex items-center bg-surface-card border border-surface-border rounded-lg p-1 gap-1">
+    <div className="flex items-center border-b border-rule mb-1">
       {TABS.map((tab) => {
         const active = value === tab.id;
         const count = counts[tab.id];
@@ -26,19 +25,21 @@ export default function FilterToggle({ value, onChange, counts }: Props) {
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={`
-              flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium
-              transition-all duration-150 select-none
+              relative flex items-center gap-1.5 px-4 py-2 text-[12px] font-sans font-semibold
+              uppercase tracking-[0.08em] select-none transition-colors whitespace-nowrap
               ${active
-                ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/50'
-                : 'text-slate-400 hover:text-white hover:bg-surface-hover'
+                ? 'text-ink border-b-2 border-wsj-red -mb-px'
+                : 'text-ink-light hover:text-ink-secondary border-b-2 border-transparent -mb-px'
               }
             `}
           >
-            {tab.icon}
             {tab.label}
             <span className={`
-              text-[10px] px-1.5 py-0.5 rounded-full font-mono
-              ${active ? 'bg-blue-500/40 text-blue-100' : 'bg-slate-700/60 text-slate-500'}
+              text-[9px] font-mono px-1 py-px border
+              ${active
+                ? 'border-ink-secondary text-ink-secondary bg-paper-muted'
+                : 'border-rule text-ink-light bg-transparent'
+              }
             `}>
               {count}
             </span>
