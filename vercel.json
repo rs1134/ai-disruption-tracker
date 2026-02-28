@@ -11,6 +11,9 @@
     },
     "app/api/admin/refresh/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/posts/route.ts": {
+      "maxDuration": 60
     }
   }
 }

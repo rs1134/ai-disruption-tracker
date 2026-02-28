@@ -12,6 +12,8 @@ export default function HomePage() {
   const [topDisruption, setTopDisruption] = useState<FeedItem | null>(null);
   const [sidebarLoading, setSidebarLoading] = useState(true);
   const [feedCounts, setFeedCounts] = useState({ all: 0, tweet: 0, news: 0 });
+  // Incrementing this key remounts <Feed>, forcing a fresh /api/posts fetch
+  const [feedKey, setFeedKey] = useState(0);
 
   async function loadSidebar() {
     try {
@@ -36,6 +38,8 @@ export default function HomePage() {
 
   const handleRefresh = useCallback(async () => {
     await loadSidebar();
+    // Remount Feed so it discards the in-memory cache and re-fetches /api/posts
+    setFeedKey((k) => k + 1);
   }, []);
 
   return (
@@ -79,7 +83,7 @@ export default function HomePage() {
           {/* Primary feed column */}
           <div className="flex-1 min-w-0">
             <DisruptionHighlight item={topDisruption} />
-            <Feed onCountsChange={setFeedCounts} />
+            <Feed key={feedKey} onCountsChange={setFeedCounts} />
           </div>
 
           {/* Sidebar */}

@@ -48,7 +48,7 @@ export async function upsertFeedItem(item: {
       ${item.engagementScore}, ${item.likes}, ${item.reposts},
       ${item.replies}, ${item.views}, ${item.category}, ${item.sentiment},
       ${item.tags}, ${item.publishedAt},
-      NOW() + INTERVAL '24 hours'
+      NOW() + INTERVAL '35 minutes'
     )
     ON CONFLICT (id) DO UPDATE SET
       engagement_score = EXCLUDED.engagement_score,
@@ -56,7 +56,7 @@ export async function upsertFeedItem(item: {
       reposts          = EXCLUDED.reposts,
       replies          = EXCLUDED.replies,
       views            = EXCLUDED.views,
-      expires_at       = NOW() + INTERVAL '24 hours'
+      expires_at       = NOW() + INTERVAL '35 minutes'
   `;
 }
 
@@ -99,12 +99,12 @@ export async function upsertTrendingCompany(name: string, sentiment: string) {
   const sql = db();
   return sql`
     INSERT INTO trending_companies (name, count, sentiment, expires_at)
-    VALUES (${name}, 1, ${sentiment}, NOW() + INTERVAL '24 hours')
+    VALUES (${name}, 1, ${sentiment}, NOW() + INTERVAL '35 minutes')
     ON CONFLICT (name) DO UPDATE SET
       count     = trending_companies.count + 1,
       sentiment = EXCLUDED.sentiment,
       last_seen = NOW(),
-      expires_at = NOW() + INTERVAL '24 hours'
+      expires_at = NOW() + INTERVAL '35 minutes'
   `;
 }
 

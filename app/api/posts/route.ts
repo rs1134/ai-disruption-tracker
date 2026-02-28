@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFeedItems } from '@/lib/db';
 import { cache, CACHE_KEYS, CACHE_TTL } from '@/lib/cache';
+import { refreshAllData } from '@/lib/refreshData';
 import type { FeedItem } from '@/types';
 
 export const runtime = 'nodejs';
+// Allow up to 60 s – needed when an on-demand refresh is triggered inline
+export const maxDuration = 60;
 
 function mapRow(row: Record<string, unknown>): FeedItem {
   return {
@@ -36,7 +39,7 @@ export async function GET(request: NextRequest) {
 
   const cacheKey = type ? CACHE_KEYS[`FEED_${type.toUpperCase() as 'TWEETS' | 'NEWS'}`] : CACHE_KEYS.FEED_ALL;
 
-  // Check cache
+  // Return from in-process cache when available (first-page requests only)
   const cached = cache.get<FeedItem[]>(cacheKey);
   if (cached && offset === 0) {
     return NextResponse.json({
@@ -48,9 +51,27 @@ export async function GET(request: NextRequest) {
 
   try {
     const rows = await getFeedItems(type ?? undefined, limit, offset);
-    const items = rows.map(mapRow);
+    let items = rows.map(mapRow);
 
-    // Only cache first page
+    // ── On-demand auto-refresh ──────────────────────────────────────────────
+    // If the DB returned no live items on the first page it means all records
+    // have expired (35-min TTL).  Trigger a fresh fetch inline so the user
+    // always sees up-to-date content without needing a paid Vercel cron plan.
+    if (items.length === 0 && offset === 0) {
+      console.log('[API/posts] No live items – triggering on-demand refresh…');
+      try {
+        await refreshAllData();
+        // Re-query with fresh data
+        const freshRows = await getFeedItems(type ?? undefined, limit, offset);
+        items = freshRows.map(mapRow);
+      } catch (refreshErr) {
+        console.error('[API/posts] On-demand refresh failed:', refreshErr);
+        // Fall through and return empty – better than crashing
+      }
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
+    // Cache first page
     if (offset === 0) {
       cache.set(cacheKey, items, CACHE_TTL.FEED);
     }
