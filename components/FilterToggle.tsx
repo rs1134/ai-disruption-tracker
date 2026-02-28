@@ -9,14 +9,14 @@ interface Props {
 }
 
 const TABS: { id: FilterType; label: string }[] = [
-  { id: 'all',   label: 'All' },
+  { id: 'all',   label: 'All Stories' },
   { id: 'tweet', label: 'Reddit & HN' },
   { id: 'news',  label: 'News' },
 ];
 
 export default function FilterToggle({ value, onChange, counts }: Props) {
   return (
-    <div className="flex items-center border-b border-rule mb-1">
+    <div className="flex items-center gap-2 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
       {TABS.map((tab) => {
         const active = value === tab.id;
         const count = counts[tab.id];
@@ -25,20 +25,20 @@ export default function FilterToggle({ value, onChange, counts }: Props) {
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={`
-              relative flex items-center gap-1.5 px-4 py-2 text-[12px] font-sans font-semibold
-              uppercase tracking-[0.08em] select-none transition-colors whitespace-nowrap
+              flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+              transition-all duration-150 select-none whitespace-nowrap
               ${active
-                ? 'text-ink border-b-2 border-wsj-red -mb-px'
-                : 'text-ink-light hover:text-ink-secondary border-b-2 border-transparent -mb-px'
+                ? 'bg-white text-slate-900 shadow-card'
+                : 'text-slate-500 hover:text-slate-700'
               }
             `}
           >
             {tab.label}
             <span className={`
-              text-[9px] font-mono px-1 py-px border
+              text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center
               ${active
-                ? 'border-ink-secondary text-ink-secondary bg-paper-muted'
-                : 'border-rule text-ink-light bg-transparent'
+                ? 'bg-indigo-100 text-indigo-600'
+                : 'bg-slate-200 text-slate-400'
               }
             `}>
               {count}

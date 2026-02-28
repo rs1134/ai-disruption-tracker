@@ -2,10 +2,10 @@
 
 import type { Sentiment } from '@/types';
 
-const CONFIG: Record<Sentiment, { label: string; classes: string }> = {
-  positive: { label: '▲', classes: 'text-emerald-700' },
-  negative: { label: '▼', classes: 'text-red-700' },
-  neutral:  { label: '◆', classes: 'text-ink-light' },
+const CONFIG: Record<Sentiment, { dot: string; label: string }> = {
+  positive: { dot: 'bg-emerald-500', label: 'Positive' },
+  negative: { dot: 'bg-red-500',     label: 'Negative' },
+  neutral:  { dot: 'bg-slate-400',   label: 'Neutral'  },
 };
 
 interface Props {
@@ -15,8 +15,9 @@ interface Props {
 export default function SentimentBadge({ sentiment }: Props) {
   const cfg = CONFIG[sentiment];
   return (
-    <span className={`text-[9px] font-bold leading-none ${cfg.classes}`} title={sentiment}>
-      {cfg.label}
-    </span>
+    <span
+      className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`}
+      title={cfg.label}
+    />
   );
 }

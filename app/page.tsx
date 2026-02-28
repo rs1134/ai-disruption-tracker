@@ -39,58 +39,74 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-paper font-sans">
+    <div className="min-h-screen bg-slate-50">
       <Header
         lastRefreshed={sidebarStats?.lastRefreshed ?? null}
         onRefresh={handleRefresh}
       />
 
-      {/* Subheading bar — count stats */}
-      {feedCounts.all > 0 && (
-        <div className="border-b border-rule bg-paper-warm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4 text-[11px] text-ink-light font-sans">
-            <span>
-              <span className="font-semibold text-ink">{feedCounts.all}</span> items today
-            </span>
-            <span className="text-rule">|</span>
-            <span>
-              <span className="font-semibold text-ink">{feedCounts.tweet}</span> Reddit &amp; HN
-            </span>
-            <span className="text-rule">|</span>
-            <span>
-              <span className="font-semibold text-ink">{feedCounts.news}</span> news articles
-            </span>
+      {/* Sub-header: live stats bar */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[13px] font-semibold text-slate-800">
+              Today&rsquo;s AI Disruptions
+            </h2>
+            {feedCounts.all > 0 && (
+              <span className="text-[11px] text-slate-400 font-medium">
+                — {feedCounts.all} stories from Reddit, HN &amp; news
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-4 text-[12px] text-slate-500">
+            {feedCounts.tweet > 0 && (
+              <span>
+                <span className="font-semibold text-slate-700">{feedCounts.tweet}</span> social
+              </span>
+            )}
+            {feedCounts.news > 0 && (
+              <span>
+                <span className="font-semibold text-slate-700">{feedCounts.news}</span> articles
+              </span>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
           {/* Primary feed column */}
           <div className="flex-1 min-w-0">
             <DisruptionHighlight item={topDisruption} />
             <Feed onCountsChange={setFeedCounts} />
           </div>
 
-          {/* Sidebar — right rail */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-[108px]">
-              {/* Divider line on left */}
-              <div className="pl-6 border-l border-rule">
-                <Sidebar stats={sidebarStats} loading={sidebarLoading} />
-              </div>
+          {/* Sidebar */}
+          <div className="hidden lg:block w-72 flex-shrink-0">
+            <div className="sticky top-[80px]">
+              <Sidebar stats={sidebarStats} loading={sidebarLoading} />
             </div>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t-2 border-ink mt-16 pt-4 pb-8">
+      <footer className="bg-slate-900 mt-20 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between gap-2 text-[11px] text-ink-light font-sans">
-            <p className="font-semibold text-ink">The AI Disruption Tracker</p>
-            <p>Data refreshed daily · Past 24 hours only · Powered by Reddit, HN &amp; RSS · Next.js &amp; Neon</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-white font-bold text-sm">AI Disruption Tracker</span>
+              </div>
+              <p className="text-slate-400 text-[12px]">
+                Top AI disruptions in the last 24 hours, updated daily.
+              </p>
+            </div>
+            <div className="text-[11px] text-slate-500 text-left sm:text-right">
+              <p>Powered by Reddit · Hacker News · RSS Feeds</p>
+              <p className="mt-0.5">Built with Next.js &amp; Neon PostgreSQL</p>
+            </div>
           </div>
         </div>
       </footer>

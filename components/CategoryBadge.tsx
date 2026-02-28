@@ -2,36 +2,31 @@
 
 import type { Category } from '@/types';
 
-// WSJ-style: bordered label tags, no background fill
-const CONFIG: Record<Category, { label: string; borderColor: string; textColor: string }> = {
-  Layoffs:          { label: 'LAYOFFS',        borderColor: 'border-red-600',    textColor: 'text-red-700' },
-  Funding:          { label: 'FUNDING',         borderColor: 'border-emerald-700', textColor: 'text-emerald-700' },
-  'Product Launch': { label: 'PRODUCT',         borderColor: 'border-blue-700',   textColor: 'text-blue-700' },
-  Regulation:       { label: 'REGULATION',      borderColor: 'border-amber-700',  textColor: 'text-amber-700' },
-  Breakthrough:     { label: 'BREAKTHROUGH',    borderColor: 'border-purple-700', textColor: 'text-purple-700' },
-  Acquisition:      { label: 'ACQUISITION',     borderColor: 'border-cyan-700',   textColor: 'text-cyan-700' },
-  General:          { label: 'AI',              borderColor: 'border-ink-muted',  textColor: 'text-ink-muted' },
+const CONFIG: Record<Category, { label: string; bg: string; text: string }> = {
+  Layoffs:          { label: 'Layoffs',        bg: 'bg-red-500',     text: 'text-white' },
+  Funding:          { label: 'Funding',         bg: 'bg-emerald-500', text: 'text-white' },
+  'Product Launch': { label: 'Product',         bg: 'bg-blue-500',    text: 'text-white' },
+  Regulation:       { label: 'Regulation',      bg: 'bg-amber-500',   text: 'text-white' },
+  Breakthrough:     { label: 'Breakthrough',    bg: 'bg-purple-500',  text: 'text-white' },
+  Acquisition:      { label: 'Acquisition',     bg: 'bg-cyan-500',    text: 'text-white' },
+  General:          { label: 'AI',              bg: 'bg-slate-500',   text: 'text-white' },
 };
 
 interface Props {
   category: Category;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export default function CategoryBadge({ category, size = 'sm' }: Props) {
   const cfg = CONFIG[category] ?? CONFIG.General;
-  const sizeClasses = size === 'sm'
-    ? 'text-[9px] px-1 py-px'
-    : 'text-[10px] px-1.5 py-0.5';
+
+  const sizeClasses =
+    size === 'lg' ? 'text-[11px] px-2.5 py-1 rounded-md' :
+    size === 'md' ? 'text-[10px] px-2 py-0.5 rounded' :
+                   'text-[9px] px-1.5 py-0.5 rounded';
 
   return (
-    <span
-      className={`
-        inline-flex items-center border font-sans font-bold tracking-[0.1em] uppercase
-        bg-transparent
-        ${sizeClasses} ${cfg.borderColor} ${cfg.textColor}
-      `}
-    >
+    <span className={`inline-flex items-center font-bold tracking-wide uppercase ${sizeClasses} ${cfg.bg} ${cfg.text}`}>
       {cfg.label}
     </span>
   );

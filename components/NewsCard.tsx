@@ -2,7 +2,7 @@
 
 import { formatDistanceToNow } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
-import type { FeedItem } from '@/types';
+import type { FeedItem, Category } from '@/types';
 import CategoryBadge from './CategoryBadge';
 import SentimentBadge from './SentimentBadge';
 
@@ -10,75 +10,95 @@ interface Props {
   item: FeedItem;
 }
 
+const GRADIENT_CLASS: Record<Category, string> = {
+  Layoffs:          'gradient-layoffs',
+  Funding:          'gradient-funding',
+  'Product Launch': 'gradient-product',
+  Regulation:       'gradient-regulation',
+  Breakthrough:     'gradient-breakthrough',
+  Acquisition:      'gradient-acquisition',
+  General:          'gradient-general',
+};
+
 export default function NewsCard({ item }: Props) {
   const timeAgo = formatDistanceToNow(new Date(item.publishedAt), { addSuffix: true });
+  const gradientClass = GRADIENT_CLASS[item.category] ?? 'gradient-general';
 
   return (
-    <article className="group border-b border-rule last:border-b-0 py-4 first:pt-0">
-      <div className="flex gap-3">
-        {/* Text content */}
-        <div className="flex-1 min-w-0">
-          {/* Meta row */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <CategoryBadge category={item.category} size="sm" />
-            <SentimentBadge sentiment={item.sentiment} />
-            <span className="text-[10px] text-ink-light font-sans uppercase tracking-wide ml-auto flex-shrink-0">
-              {item.source}
-            </span>
-          </div>
+    <article className="group bg-white rounded-xl overflow-hidden shadow-card hover:shadow-card-hover border border-slate-100 article-card animate-fade-in flex flex-col">
+      {/* Top image or gradient */}
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="block relative aspect-video card-image-wrap">
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="w-full h-full object-cover card-gradient"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.style.display = 'none';
+              const parent = img.parentElement;
+              if (parent) {
+                const div = document.createElement('div');
+                div.className = `w-full h-full ${gradientClass} card-gradient`;
+                parent.appendChild(div);
+              }
+            }}
+          />
+        ) : (
+          <div className={`w-full h-full ${gradientClass} card-gradient`} />
+        )}
 
-          {/* Headline */}
+        {/* Category badge over image */}
+        <div className="absolute bottom-2.5 left-2.5">
+          <CategoryBadge category={item.category} size="sm" />
+        </div>
+
+        {/* Sentiment dot top-right */}
+        <div className="absolute top-2.5 right-2.5">
+          <SentimentBadge sentiment={item.sentiment} />
+        </div>
+      </a>
+
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-4">
+        {/* Source + time */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wide">
+            {item.source}
+          </span>
+          <span className="text-[11px] text-slate-400">{timeAgo}</span>
+        </div>
+
+        {/* Headline */}
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="block flex-1">
+          <h3 className="font-bold text-[15px] leading-snug text-slate-900 line-clamp-2 group-hover:text-indigo-600 transition-colors mb-2">
+            {item.title}
+          </h3>
+        </a>
+
+        {/* Excerpt */}
+        {item.content && (
+          <p className="text-[12px] text-slate-500 leading-relaxed line-clamp-2 mb-3">
+            {item.content}
+          </p>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+          <span className="text-[12px] text-slate-400 italic">
+            {item.author && item.author !== item.source ? item.author : ''}
+          </span>
           <a
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block group"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            aria-label="Read article"
+            onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-serif font-bold text-[15px] leading-snug text-ink mb-1 group-hover:text-wsj-red transition-colors line-clamp-2">
-              {item.title}
-            </h3>
+            <ExternalLink className="w-3.5 h-3.5" />
           </a>
-
-          {/* Excerpt */}
-          {item.content && (
-            <p className="text-[12px] text-ink-secondary font-sans leading-relaxed line-clamp-2 mb-2">
-              {item.content}
-            </p>
-          )}
-
-          {/* Footer */}
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-ink-light font-sans italic">
-              {item.author && item.author !== item.source ? item.author : ''}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-ink-faint font-sans">{timeAgo}</span>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-ink-faint hover:text-wsj-red transition-colors"
-                aria-label="Read article"
-              >
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
         </div>
-
-        {/* Thumbnail image — right side like WSJ */}
-        {item.imageUrl && (
-          <div className="flex-shrink-0 w-20 h-16 overflow-hidden">
-            <img
-              src={item.imageUrl}
-              alt={item.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
       </div>
     </article>
   );

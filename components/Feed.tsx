@@ -10,7 +10,29 @@ interface Props {
   onCountsChange?: (counts: { all: number; tweet: number; news: number }) => void;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 18;
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-xl overflow-hidden shadow-card border border-slate-100 animate-pulse">
+      <div className="aspect-video bg-slate-200" />
+      <div className="p-4 space-y-3">
+        <div className="flex justify-between">
+          <div className="h-3 w-20 bg-slate-200 rounded" />
+          <div className="h-3 w-16 bg-slate-200 rounded" />
+        </div>
+        <div className="h-4 w-full bg-slate-200 rounded" />
+        <div className="h-4 w-4/5 bg-slate-200 rounded" />
+        <div className="h-3 w-3/5 bg-slate-200 rounded" />
+        <div className="h-px bg-slate-100" />
+        <div className="flex justify-between">
+          <div className="h-3 w-16 bg-slate-200 rounded" />
+          <div className="h-3 w-6 bg-slate-200 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Feed({ onCountsChange }: Props) {
   const [allItems, setAllItems] = useState<FeedItem[]>([]);
@@ -20,7 +42,6 @@ export default function Feed({ onCountsChange }: Props) {
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all items on mount
   useEffect(() => {
     setLoading(true);
     fetch('/api/posts?limit=100')
@@ -28,12 +49,11 @@ export default function Feed({ onCountsChange }: Props) {
       .then((res) => {
         const items: FeedItem[] = res.data ?? [];
         setAllItems(items);
-        const counts = {
+        onCountsChange?.({
           all: items.length,
           tweet: items.filter((i) => i.type === 'tweet').length,
           news: items.filter((i) => i.type === 'news').length,
-        };
-        onCountsChange?.(counts);
+        });
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -62,7 +82,6 @@ export default function Feed({ onCountsChange }: Props) {
     return () => obs.disconnect();
   }, [hasMore, loadingMore]);
 
-  // Reset page when filter changes
   useEffect(() => { setPage(1); }, [filter]);
 
   const counts = {
@@ -74,18 +93,9 @@ export default function Feed({ onCountsChange }: Props) {
   if (loading) {
     return (
       <div>
-        {/* Skeleton filter tabs */}
-        <div className="h-9 w-64 bg-rule animate-pulse mb-4" />
-        {/* Skeleton cards */}
-        <div className="divide-y divide-rule">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="py-4 space-y-2">
-              <div className="h-3 w-16 bg-rule animate-pulse" />
-              <div className="h-4 w-full bg-rule animate-pulse" />
-              <div className="h-4 w-4/5 bg-rule animate-pulse" />
-              <div className="h-3 w-32 bg-rule animate-pulse" />
-            </div>
-          ))}
+        <div className="h-11 w-80 bg-slate-100 rounded-xl animate-pulse mb-6" />
+        <div className="grid sm:grid-cols-2 gap-5">
+          {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       </div>
     );
@@ -97,11 +107,14 @@ export default function Feed({ onCountsChange }: Props) {
 
       {visible.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-[15px] text-ink-secondary font-serif mb-1">No items yet</p>
-          <p className="text-[12px] text-ink-light font-sans">The first data refresh will populate this feed.</p>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <span className="text-3xl">📰</span>
+          </div>
+          <p className="text-lg font-semibold text-slate-600 mb-1">No stories yet</p>
+          <p className="text-sm text-slate-400">The first data refresh will populate this feed.</p>
         </div>
       ) : (
-        <div className="divide-y divide-rule">
+        <div className="grid sm:grid-cols-2 gap-5">
           {visible.map((item) =>
             item.type === 'tweet' ? (
               <PostCard key={item.id} item={item} />
@@ -114,13 +127,13 @@ export default function Feed({ onCountsChange }: Props) {
 
       {/* Infinite scroll sentinel */}
       {hasMore && (
-        <div ref={sentinelRef} className="flex justify-center py-8">
+        <div ref={sentinelRef} className="flex justify-center py-10">
           {loadingMore && (
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-1.5 h-1.5 bg-ink-faint animate-bounce"
+                  className="w-2.5 h-2.5 rounded-full bg-indigo-300 animate-bounce"
                   style={{ animationDelay: `${i * 150}ms` }}
                 />
               ))}

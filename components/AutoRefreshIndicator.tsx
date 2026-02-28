@@ -47,8 +47,8 @@ export default function AutoRefreshIndicator({
     <button
       onClick={handleRefresh}
       disabled={isRefreshing}
-      className="flex items-center gap-1.5 text-white/50 hover:text-white/90 transition-colors disabled:opacity-40"
-      title={lastRefreshed ? `Last updated ${new Date(lastRefreshed).toLocaleTimeString()}` : 'Click to refresh'}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors disabled:opacity-40"
+      title={lastRefreshed ? `Last updated ${new Date(lastRefreshed).toLocaleTimeString()}` : 'Refresh now'}
     >
       <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
       <span className="text-[10px] font-mono tabular-nums hidden sm:block">

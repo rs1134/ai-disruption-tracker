@@ -23,12 +23,12 @@ export default function KeywordHeatmap() {
 
   if (loading) {
     return (
-      <div className="space-y-1.5">
-        {[...Array(6)].map((_, i) => (
+      <div className="flex flex-wrap gap-2">
+        {[...Array(10)].map((_, i) => (
           <div
             key={i}
-            className="h-4 bg-rule animate-pulse"
-            style={{ width: `${50 + i * 8}%` }}
+            className="h-6 bg-slate-200 rounded-full animate-pulse"
+            style={{ width: `${40 + i * 10}px` }}
           />
         ))}
       </div>
@@ -36,30 +36,29 @@ export default function KeywordHeatmap() {
   }
 
   if (keywords.length === 0) {
-    return <p className="text-[11px] text-ink-light font-sans">No keyword data yet.</p>;
+    return <p className="text-[12px] text-slate-400">No keyword data yet.</p>;
   }
 
   const max = Math.max(...keywords.map((k) => k.count), 1);
 
   return (
-    <div className="flex flex-wrap gap-x-2 gap-y-1">
-      {keywords.slice(0, 24).map((kw) => {
+    <div className="flex flex-wrap gap-2">
+      {keywords.slice(0, 20).map((kw) => {
         const intensity = kw.count / max;
-        const fontSize = 10 + intensity * 5;
-        // Use ink color with varying opacity — editorial look
-        const opacity = 0.35 + intensity * 0.65;
+        const fontSize = 10 + intensity * 4;
+        // From light indigo to deep indigo based on intensity
+        const bg = intensity > 0.6
+          ? 'bg-indigo-500 text-white'
+          : intensity > 0.3
+            ? 'bg-indigo-100 text-indigo-700'
+            : 'bg-slate-100 text-slate-500';
 
         return (
           <span
             key={kw.keyword}
             title={`${kw.keyword}: ${kw.count} mentions`}
-            className="cursor-default font-sans transition-colors hover:text-wsj-red"
-            style={{
-              fontSize: `${fontSize}px`,
-              color: `rgba(17, 17, 17, ${opacity})`,
-              fontWeight: intensity > 0.5 ? 600 : 400,
-              lineHeight: 1.6,
-            }}
+            className={`px-2.5 py-1 rounded-full font-medium cursor-default transition-all hover:scale-105 ${bg}`}
+            style={{ fontSize: `${fontSize}px` }}
           >
             {kw.keyword}
           </span>
