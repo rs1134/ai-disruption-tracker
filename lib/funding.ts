@@ -71,7 +71,9 @@ function mapRow(r: Record<string, unknown>): FundingRound {
     investors: (r.investors as string[]) ?? [],
     industry: r.industry as string,
     location: r.location as string,
-    announcedDate: (r.announced_date as Date | string).toString().slice(0, 10),
+    announcedDate: r.announced_date instanceof Date
+      ? r.announced_date.toISOString().slice(0, 10)
+      : String(r.announced_date).slice(0, 10),
     sourceUrl: (r.source_url as string) ?? null,
     description: r.description as string,
     valuationDisplay: (r.valuation_display as string) ?? null,

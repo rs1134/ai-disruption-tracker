@@ -103,7 +103,10 @@ function fmt(m: string | number | null | undefined): string {
 function fmtDate(d: string): string {
   if (!d) return '';
   try {
-    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    // Parse as UTC to avoid timezone-induced day/year shifts
+    const [yr, mo, dy] = d.split('-').map(Number);
+    const dt = new Date(Date.UTC(yr, mo - 1, dy));
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   } catch { return d; }
 }
 
