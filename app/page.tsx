@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import Feed from '@/components/Feed';
 import Sidebar from '@/components/Sidebar';
 import DisruptionHighlight from '@/components/DisruptionHighlight';
-import AIComparisonChart from '@/components/AIComparisonChart';
 import type { FeedItem, SidebarStats } from '@/types';
 
 export default function HomePage() {
@@ -94,13 +94,33 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* China vs US AI Comparison */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AIComparisonChart />
+      {/* Compare page promo banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <Link
+          href="/compare"
+          className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-6 py-5 hover:from-indigo-500 hover:to-violet-500 transition-all group shadow-lg"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-3xl">
+              <span>🇺🇸</span>
+              <span className="text-white/40 text-xl font-bold">vs</span>
+              <span>🇨🇳</span>
+            </div>
+            <div>
+              <p className="text-white font-black text-[16px]">US vs China AI Comparison</p>
+              <p className="text-indigo-200 text-[12px]">
+                Live Arena Elo · Category leaderboards · Funding · Timeline
+              </p>
+            </div>
+          </div>
+          <span className="flex-shrink-0 flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold text-[13px] px-4 py-2 rounded-xl transition-colors">
+            View Full Comparison →
+          </span>
+        </Link>
       </div>
 
       {/* Footer */}
-      <footer className="bg-slate-900 mt-8 py-10">
+      <footer className="bg-slate-900 mt-4 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
