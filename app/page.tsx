@@ -89,9 +89,7 @@ export default function HomePage() {
 
           {/* Sidebar */}
           <div className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-[80px]">
-              <Sidebar stats={sidebarStats} loading={sidebarLoading} />
-            </div>
+            <Sidebar stats={sidebarStats} loading={sidebarLoading} />
           </div>
         </div>
       </main>

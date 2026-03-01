@@ -61,8 +61,9 @@ export default function AIFundingCard() {
                 />
               </div>
 
-              <div className="mt-0.5 text-[10px] text-slate-400">
-                {company.latestRound} · {company.latestRoundDate}
+              <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-400">
+                <span>{company.latestRound} · {company.latestRoundDate}</span>
+                <span className="text-slate-300">{company.valuation}</span>
               </div>
             </li>
           );
