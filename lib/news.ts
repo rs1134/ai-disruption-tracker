@@ -52,6 +52,41 @@ function getAttr(xml: string, tag: string, attr: string): string {
   return m ? m[1].trim() : '';
 }
 
+// Get raw (un-stripped) content for image extraction before HTML is removed
+function getRawTag(xml: string, tag: string): string {
+  const cdataRe = new RegExp(
+    `<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`,
+    'i'
+  );
+  const cdataMatch = xml.match(cdataRe);
+  if (cdataMatch) return cdataMatch[1];
+
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
+  const m = xml.match(re);
+  return m ? m[1] : '';
+}
+
+// Extract the first usable http(s) image URL from a blob of HTML
+function extractImageFromHtml(html: string): string | undefined {
+  // <img src="..."> or <img src='...'>
+  const imgRe = /<img[^>]+src=["']([^"']+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = imgRe.exec(html)) !== null) {
+    const src = m[1].trim();
+    // Only accept absolute http(s) URLs and skip tiny tracking pixels / spacers
+    if (
+      src.startsWith('http') &&
+      !src.includes('spacer') &&
+      !src.includes('pixel') &&
+      !src.includes('tracking') &&
+      !src.endsWith('.gif')
+    ) {
+      return src;
+    }
+  }
+  return undefined;
+}
+
 interface ParsedItem {
   title: string;
   link: string;
@@ -87,12 +122,22 @@ function parseItem(itemXml: string): ParsedItem | null {
     getTag(itemXml, 'dc:creator') ||
     getTag(itemXml, 'name');
 
-  // Media / enclosure image
-  const imageUrl =
+  // Media / enclosure image (standard RSS media tags)
+  let imageUrl: string | undefined =
     getAttr(itemXml, 'media:content', 'url') ||
     getAttr(itemXml, 'media:thumbnail', 'url') ||
     getAttr(itemXml, 'enclosure', 'url') ||
     undefined;
+
+  // Fallback: extract first <img> from description / content:encoded HTML
+  // (many feeds embed article images in CDATA HTML blobs)
+  if (!imageUrl) {
+    const rawHtml =
+      getRawTag(itemXml, 'content:encoded') ||
+      getRawTag(itemXml, 'description') ||
+      getRawTag(itemXml, 'summary');
+    imageUrl = extractImageFromHtml(rawHtml);
+  }
 
   // Decode common HTML entities
   const decode = (s: string) =>

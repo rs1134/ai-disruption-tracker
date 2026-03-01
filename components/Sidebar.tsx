@@ -1,8 +1,9 @@
 'use client';
 
-import { DollarSign, Users, TrendingUp, Hash } from 'lucide-react';
+import { Users, TrendingUp, Hash } from 'lucide-react';
 import type { SidebarStats } from '@/types';
 import KeywordHeatmap from './KeywordHeatmap';
+import AIFundingCard from './AIFundingCard';
 
 interface Props {
   stats: SidebarStats | null;
@@ -67,16 +68,6 @@ export default function Sidebar({ stats, loading }: Props) {
                 </span>
               </div>
             )}
-            {stats.totalFunding !== null && (
-              <div className="flex items-center justify-between py-2">
-                <span className="flex items-center gap-1.5 text-[13px] text-slate-500">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Funding
-                </span>
-                <span className="text-[14px] font-bold text-emerald-600 tabular-nums">
-                  {stats.totalFunding}
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -117,6 +108,9 @@ export default function Sidebar({ stats, loading }: Props) {
           </ol>
         )}
       </div>
+
+      {/* Top AI Funding card (static curated data) */}
+      <AIFundingCard />
 
       {/* Keyword Cloud card */}
       <div className="bg-white rounded-xl border border-slate-100 shadow-card p-4">
